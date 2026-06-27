@@ -375,6 +375,8 @@ class InfoExtractor:
                                            favorite by the video uploader
                         * "is_pinned" - Whether the comment is pinned to
                                         the top of the comments
+                        * "start_time" - Start time (in seconds) for displaying the comment
+                        * "end_time" - End time (in seconds) for displaying the comment
     age_limit:      Age restriction for the video, as an integer (years)
     webpage_url:    The URL to the video webpage, if given to yt-dlp it
                     should allow to get the same result again. (It will be set
@@ -2970,6 +2972,8 @@ class InfoExtractor:
                     content_type = representation_attrib.get('contentType', mime_type.split('/')[0])
 
                     codec_str = representation_attrib.get('codecs', '')
+                    supplemental_codecs = representation_attrib.get(
+                        '{urn:scte:dash:scte214-extensions}supplementalCodecs')
                     # Some kind of binary subtitle found in some youtube livestreams
                     if mime_type == 'application/x-rawcc':
                         codecs = {'scodec': codec_str}
@@ -3025,7 +3029,7 @@ class InfoExtractor:
                             'asr': int_or_none(representation_attrib.get('audioSamplingRate')),
                             'fps': int_or_none(representation_attrib.get('frameRate')),
                             'language': lang if lang not in ('mul', 'und', 'zxx', 'mis') else None,
-                            'format_note': f'DASH {content_type}',
+                            'format_note': join_nonempty(f'DASH {content_type}', supplemental_codecs, delim=', '),
                             'filesize': filesize,
                             'container': mimetype2ext(mime_type) + '_dash',
                             **codecs,
